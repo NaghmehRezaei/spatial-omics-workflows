@@ -1,226 +1,134 @@
-\# Methods Appendix: Spatial Omics Workflows
+# Methods Appendix: Spatial Omics Workflows
 
+## Overview
 
+This document describes a complete workflow for the analysis of spatial
+transcriptomics data generated using **NanoString GeoMx DSP** and related
+platforms. The methods are written to emphasize analytical rationale,
+reproducibility, and biological interpretability, and are intended to
+reflect practical workflows commonly used in spatial omics studies.
 
-\## Overview
-
-
-
-This document describes a complete spatial transcriptomics analysis
-
-workflow, from raw data import to spatial visualization, differential
-
-expression, and pathway-level interpretation. The workflows are designed
-
-for NanoString GeoMx DSP and similar spatial omics platforms.
-
-
-
-The methods emphasize reproducibility, analytical rationale, and
-
-clarity, rather than serving as a turnkey software package.
-
-
+The pipeline is modular and adaptable, rather than a fixed turnkey
+solution, allowing analytical choices to be tailored to specific
+datasets and experimental designs.
 
 ---
 
+## 0. Software environment and analytical framework
 
+All analyses are performed in R using **GeoMxTools** for NanoString
+GeoMx DSP–specific data handling and quality control. Region-level
+differential expression analysis is conducted using **limma/voom** to
+appropriately model variance in spatial transcriptomics data. Pathway
+enrichment analysis is performed using **fgsea**.
 
-\## 0. Software Environment and Setup
+**Seurat** is used exclusively for dimensionality reduction and
+visualization and is not used for statistical modeling of differential
+expression.
 
+Specific normalization strategies, quality control thresholds, and
+statistical parameters may be adapted based on platform characteristics
+and experimental design.
 
+---
 
-Analyses are performed using R (≥4.1) and Bioconductor packages suited
+## 1. Data import and preprocessing
 
-for spatial transcriptomics. Key dependencies include Seurat,
+Spatial transcriptomics data are imported from NanoString GeoMx DSP
+outputs, including raw count matrices and region-of-interest (ROI)
+metadata. Expression data, spatial coordinates, and experimental
+annotations are merged to create a unified analysis object suitable for
+downstream modeling.
 
-GeoMxTools, SpatialExperiment, and tidyverse-based visualization tools.
+Raw counts are preserved during import to allow transparent
+reprocessing and downstream normalization.
 
-All software versions and reference files are documented to support
+---
 
+## 2. Quality control of spatial regions
+
+Quality control is performed at the ROI level using standard spatial
+omics metrics, including library size, detected gene counts, and
+platform-specific control probes. ROIs exhibiting outlier behavior are
+identified through summary statistics and visualization and may be
+excluded if they fail predefined quality thresholds.
+
+All QC decisions are documented to ensure interpretability and
 reproducibility.
 
+---
 
+## 3. Normalization and feature filtering
+
+Expression data are normalized using methods appropriate for GeoMx DSP
+data, such as Q3 normalization or log-transformed counts per million.
+Feature filtering is applied to remove low-information genes prior to
+downstream analyses.
+
+Normalization choices are guided by data distribution and platform
+characteristics rather than fixed assumptions.
 
 ---
 
+## 4. Dimensionality reduction and exploratory analysis
 
+Dimensionality reduction techniques, including principal component
+analysis (PCA) and uniform manifold approximation and projection (UMAP),
+are applied to normalized expression data to explore global structure
+and spatial heterogeneity across ROIs.
 
-\## 1. Data Import and Preprocessing
-
-
-
-Spatial transcriptomics data are imported from platform-specific output
-
-formats, including raw count matrices and region-level metadata. Spatial
-
-coordinates, imaging metadata, and experimental annotations are merged
-
-with expression data to create a unified analysis object.
-
-
-
-Raw counts are preserved to allow transparent downstream processing and
-
-re-analysis.
-
-
+These analyses are used for exploratory purposes and quality assessment
+rather than inferential testing.
 
 ---
 
+## 5. Spatial domain identification and annotation
 
+ROIs are grouped into spatial domains using clustering approaches
+informed by reduced-dimensional embeddings. Identified domains are
+annotated based on known marker genes, spatial context, and tissue
+architecture.
 
-\## 2. Quality Control of Spatial Regions
-
-
-
-Quality control is performed at the region-of-interest (ROI) level.
-
-Metrics include total counts, number of detected genes, and platform-
-
-specific control features. Outlier regions are identified using
-
-visualization and summary statistics and may be excluded if they fail
-
-quality thresholds.
-
-
-
-QC decisions are documented to ensure interpretability and reproducibility.
-
-
+Annotations are assigned conservatively and may be updated as additional
+biological validation becomes available.
 
 ---
 
+## 6. Differential expression analysis
 
+Differential expression analysis is performed between spatial domains or
+experimental conditions using **limma/voom**. Where applicable,
+covariates such as batch effects or sample-level variation are included
+in the model design.
 
-\## 3. Normalization and Feature Selection
-
-
-
-Expression data are normalized using methods appropriate for spatial
-
-omics platforms, including log-normalization or model-based approaches.
-
-Highly variable genes are identified to support dimensionality
-
-reduction and clustering.
-
-
-
-Normalization choices are guided by platform characteristics and data
-
-distribution.
-
-
+Differential expression results form the basis for downstream biological
+interpretation and pathway analysis.
 
 ---
 
+## 7. Spatial visualization and mapping
 
-
-\## 4. Dimensionality Reduction and Integration
-
-
-
-Dimensionality reduction methods such as PCA and UMAP are applied to
-
-normalized data to explore global structure and spatial heterogeneity.
-
-Where multiple samples or batches are present, integration strategies
-
-are used to mitigate technical variation.
-
-
+Gene expression patterns, spatial domains, and experimental conditions
+are visualized using coordinate-based plots that map molecular signals
+back onto tissue context. These visualizations support interpretation of
+spatial organization and biological structure within the tissue.
 
 ---
 
+## 8. Pathway enrichment analysis
 
-
-\## 5. Clustering and Spatial Domain Annotation
-
-
-
-Spatial regions are clustered using graph-based approaches. Clusters
-
-are annotated using canonical markers, spatial context, and known tissue
-
-structure. Annotations are assigned conservatively and may be updated as
-
-additional biological validation becomes available.
-
-
+Pathway-level interpretation is performed using both gene set enrichment
+analysis (GSEA) and over-representation analysis (ORA). Curated gene
+sets are used to identify biological processes associated with spatial
+domains or experimental conditions, with emphasis on rank-based
+approaches appropriate for spatial transcriptomics data.
 
 ---
 
+## 9. Reporting and PI-facing outputs
 
-
-\## 6. Differential Expression Analysis
-
-
-
-Differential expression testing is performed between spatial domains or
-
-conditions using appropriate statistical models. Covariates such as
-
-batch or region-level effects may be included where applicable.
-
-Differential expression results are used for downstream biological
-
-interpretation.
-
-
-
----
-
-
-
-\## 7. Spatial Visualization and Mapping
-
-
-
-Spatial expression patterns are visualized using coordinate-based plots
-
-that map gene expression and cluster identity back onto tissue context.
-
-These visualizations support interpretation of spatial organization and
-
-biological structure.
-
-
-
----
-
-
-
-\## 8. Pathway Enrichment Analysis
-
-
-
-Pathway-level interpretation is performed using both gene set
-
-enrichment analysis (GSEA) and over-representation analysis (ORA).
-
-Curated gene sets are used to identify biological processes associated
-
-with spatial domains or conditions.
-
-
-
----
-
-
-
-\## 9. Reporting and PI-facing Outputs
-
-
-
-Results are summarized in concise tables and figures designed for rapid
-
-review by principal investigators. Outputs include ranked pathway
-
-tables, spatial maps, and annotated figures, exported in spreadsheet-
-
-compatible formats for downstream use.
-
-
-
+Final results are summarized in concise tables and figures designed to
+support rapid review by principal investigators. Outputs include ranked
+pathway summary tables, spatial visualizations, and annotated figures,
+exported in spreadsheet-compatible formats for downstream reporting,
+presentation, and collaborative analysis.

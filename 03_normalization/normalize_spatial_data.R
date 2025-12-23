@@ -1,25 +1,44 @@
-# Normalization and feature selection for spatial transcriptomics
+# Normalization of NanoString GeoMx DSP spatial transcriptomics data
+# Framework: GeoMxTools
+# Strategy: Q3-style normalization followed by log-transformation
 
-library(Seurat)
+library(GeoMxTools)
+library(SummarizedExperiment)
+library(tidyverse)
+library(edgeR)
 
-spatial_obj <- readRDS("spatial_qc_filtered.rds")
+# --------------------------------------------------
+# Load QC-filtered GeoMx object
+# --------------------------------------------------
+geomx_qc <- readRDS("geomx_qc_filtered.rds")
 
-# -----------------------------
-# Log-normalization
-# -----------------------------
-spatial_obj <- NormalizeData(
-  spatial_obj,
-  normalization.method = "LogNormalize",
-  scale.factor = 10000
+# --------------------------------------------------
+# Extract raw count matrix
+# --------------------------------------------------
+counts <- assay(geomx_qc, "counts")
+
+# --------------------------------------------------
+# Calculate library-size–based normalization factors
+# --------------------------------------------------
+dge <- DGEList(counts = counts)
+
+dge <- calcNormFactors(
+  dge,
+  method = "upperquartile"  # Q3 normalization
 )
 
-# -----------------------------
-# Identify variable features
-# -----------------------------
-spatial_obj <- FindVariableFeatures(
-  spatial_obj,
-  selection.method = "vst",
-  nfeatures = 2000
+# --------------------------------------------------
+# Log-CPM transformation
+# --------------------------------------------------
+logcpm <- cpm(
+  dge,
+  log = TRUE,
+  prior.count = 1
 )
 
-saveRDS(spatial_obj, "spatial_normalized.rds")
+# --------------------------------------------------
+# Store normalized expression
+# --------------------------------------------------
+assay(geomx_qc, "logCPM") <- logcpm
+
+saveRDS(geomx_qc, "geomx_normalized.rds")

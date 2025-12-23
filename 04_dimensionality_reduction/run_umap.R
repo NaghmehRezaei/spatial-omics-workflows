@@ -1,18 +1,49 @@
-# Dimensionality reduction for spatial transcriptomics
+# Dimensionality reduction for NanoString GeoMx DSP data
+# Purpose: exploratory visualization (not inferential analysis)
+# Methods: PCA followed by UMAP
 
+library(GeoMxTools)
+library(SummarizedExperiment)
 library(Seurat)
+library(tidyverse)
 
-spatial_obj <- readRDS("spatial_normalized.rds")
+# --------------------------------------------------
+# Load normalized GeoMx object
+# --------------------------------------------------
+geomx_norm <- readRDS("geomx_normalized.rds")
 
-# -----------------------------
-# Scale and PCA
-# -----------------------------
-spatial_obj <- ScaleData(spatial_obj, features = VariableFeatures(spatial_obj))
-spatial_obj <- RunPCA(spatial_obj, features = VariableFeatures(spatial_obj))
+# --------------------------------------------------
+# Extract normalized expression (logCPM)
+# --------------------------------------------------
+expr <- assay(geomx_norm, "logCPM")
 
-# -----------------------------
-# UMAP embedding
-# -----------------------------
-spatial_obj <- RunUMAP(spatial_obj, dims = 1:20)
+# --------------------------------------------------
+# Create Seurat object for visualization only
+# --------------------------------------------------
+seurat_obj <- CreateSeuratObject(
+  counts = expr,
+  meta.data = pData(geomx_norm)
+)
 
-saveRDS(spatial_obj, "spatial_umap.rds")
+# --------------------------------------------------
+# PCA
+# --------------------------------------------------
+seurat_obj <- ScaleData(seurat_obj)
+seurat_obj <- RunPCA(seurat_obj, npcs = 30)
+
+# --------------------------------------------------
+# UMAP
+# --------------------------------------------------
+seurat_obj <- RunUMAP(seurat_obj, dims = 1:20)
+
+# --------------------------------------------------
+# Visualization
+# --------------------------------------------------
+DimPlot(
+  seurat_obj,
+  reduction = "umap",
+  group.by = "Group",
+  label = TRUE
+)
+
+saveRDS(seurat_obj, "geomx_umap_seurat.rds")

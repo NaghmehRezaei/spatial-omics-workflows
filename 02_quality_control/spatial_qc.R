@@ -1,32 +1,67 @@
-# Quality control for spatial transcriptomics ROIs
-# Output: QC-filtered Seurat object
+# Quality control for NanoString GeoMx DSP spatial transcriptomics data
+# Framework: GeoMxTools
+# QC performed at the ROI (AOI) level
 
-library(Seurat)
+library(GeoMxTools)
+library(SummarizedExperiment)
+library(tidyverse)
 library(ggplot2)
 
-spatial_obj <- readRDS("spatial_raw_seurat.rds")
+# --------------------------------------------------
+# Load imported GeoMx object
+# --------------------------------------------------
+geomx_obj <- readRDS("geomx_imported_raw.rds")
 
-# -----------------------------
-# QC metrics
-# -----------------------------
-spatial_obj[["nFeature_RNA"]] <- spatial_obj$nFeature_RNA
-spatial_obj[["nCount_RNA"]] <- spatial_obj$nCount_RNA
+# --------------------------------------------------
+# Extract ROI-level QC metrics
+# --------------------------------------------------
+roi_qc <- pData(geomx_obj) %>%
+  as_tibble() %>%
+  select(
+    ROI = roi_id,
+    Segment = segment,
+    Area = area,
+    Nuclei = nuclei,
+    LibrarySize = total_counts
+  )
 
-# -----------------------------
-# Visual QC
-# -----------------------------
-VlnPlot(
-  spatial_obj,
-  features = c("nFeature_RNA", "nCount_RNA"),
-  pt.size = 0.1
-)
+# --------------------------------------------------
+# Visual QC assessment
+# --------------------------------------------------
+ggplot(roi_qc, aes(x = LibrarySize)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  theme_minimal() +
+  labs(title = "Library size distribution across ROIs")
 
-# -----------------------------
-# Conservative filtering
-# -----------------------------
-spatial_obj <- subset(
-  spatial_obj,
-  subset = nFeature_RNA > 200 & nCount_RNA > 500
-)
+ggplot(roi_qc, aes(x = Nuclei, y = LibrarySize)) +
+  geom_point(alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Library size vs nuclei count",
+    x = "Nuclei count",
+    y = "Library size"
+  )
 
-saveRDS(spatial_obj, "spatial_qc_filtered.rds")
+# --------------------------------------------------
+# Identify low-quality ROIs
+# --------------------------------------------------
+low_lib_threshold <- quantile(roi_qc$LibrarySize, 0.05, na.rm = TRUE)
+
+roi_qc <- roi_qc %>%
+  mutate(
+    LowQuality = LibrarySize < low_lib_threshold
+  )
+
+# --------------------------------------------------
+# Filter ROIs conservatively
+# --------------------------------------------------
+high_quality_rois <- roi_qc %>%
+  filter(!LowQuality) %>%
+  pull(ROI)
+
+geomx_qc <- geomx_obj[, pData(geomx_obj)$roi_id %in% high_quality_rois]
+
+# --------------------------------------------------
+# Save QC-filtered object
+# --------------------------------------------------
+saveRDS(geomx_qc, "geomx_qc_filtered.rds")
