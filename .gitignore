@@ -1,0 +1,9 @@
+# Analysis outputs
+*.rds
+*.tsv
+*.csv
+*.pdf
+*.png
+
+# Data directories
+data/

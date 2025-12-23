@@ -19,6 +19,19 @@ supplements.
 
 ---
 
+## Workflow summary
+
+GeoMx DSP counts and ROI metadata  
+→ ROI-level quality control (library size, nuclei, control probes)  
+→ Q3 / logCPM normalization  
+→ limma-voom differential expression analysis  
+→ exploratory PCA and UMAP (visualization only)  
+→ spatial expression mapping across tissue context  
+→ gene set enrichment analysis (GSEA)  
+→ PI-facing summary tables and figures
+
+---
+
 ## Analytical framework
 
 Spatial transcriptomics analyses are performed using a combination of
@@ -54,6 +67,15 @@ The workflows cover:
 - Computational biology collaborators  
 - Bioinformatics reviewers  
 - Trainees seeking structured spatial omics workflows  
+
+---
+
+## Design philosophy
+
+This repository prioritizes transparent, statistically sound analysis
+over black-box automation. Each analytical step reflects common practice
+in NanoString GeoMx DSP studies and is designed to be inspected, adapted,
+and interpreted rather than executed as a fixed pipeline.
 
 ---
 
