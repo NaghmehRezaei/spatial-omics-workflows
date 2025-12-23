@@ -1,17 +1,8 @@
-\# 🧬 Spatial Omics Workflows
+# 🧬 Spatial Omics Workflows
 
+This repository documents end-to-end **spatial transcriptomics analysis workflows**, with a focus on **NanoString GeoMx DSP** and related spatial omics platforms.
 
-
-This repository documents end-to-end \*\*spatial transcriptomics analysis
-
-workflows\*\*, with a focus on \*\*NanoString GeoMx DSP\*\* and related spatial
-
-omics platforms.
-
-
-
-📄 \*\*Complete analytical methods are documented in \[`METHODS.md`](METHODS.md).\*\*
-
+📄 **Complete analytical methods are documented in [`METHODS.md`](METHODS.md).**
 
 
 ---
